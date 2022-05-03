@@ -10,8 +10,9 @@ export const readFileBySource = (templatePath: string) => {
 export const getCsv = (templatePath: string) => {
     const data = readFileBySource(templatePath).toString();
     const arr = data.split(/\r\n?/);
-    const headers = arr.shift()?.split(',');
-    return { headers, list: (arr || []) }
+    const headers = arr.shift()?.split(',') || [];
+    const resArr = Array.from(new Set(headers.filter(it => !!it)))
+    return { headers, list: resArr }
 }
 
 export const writeCsv = (path2: string, content: string) => {
@@ -27,7 +28,7 @@ export const writeExcel = (content: string[][], path2: string) => {
 }
 // export const writeExcel2 = (content: unknown[][], path2: string) => {
 //     const data = content;
-//     const headers = data.splice(0)[0] as string[] 
+//     const headers = data.splice(0)[0] as string[]
 //     if (!path2.endsWith('.xlsx')) path2 += '.xlsx'
 //     let path3 = resolve(process.cwd(), 'dist', path2);
 
