@@ -65,6 +65,6 @@ export default async () => {
         })
     })
 
-    writeExcel(excelData, 'aaa')
-    debugger
+    const now = new Date();
+    writeExcel(excelData, `达人带货信息-${now.getFullYear()}-${now.getMonth()}-${now.getDay()} ${now.getHours()}:${now.getMinutes()}`)
 };
