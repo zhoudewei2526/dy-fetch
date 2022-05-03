@@ -20,7 +20,7 @@ export default async () => {
     let step = new HezuodarenStep()
     await step.initPage();
     let i = 0;
-    let headers: string[] = [];
+    let headers: string[] = [''];
 
     const outerRes: (string[])[] = [];
     const prodRes: TableResult<string>[] = [];
@@ -34,13 +34,16 @@ export default async () => {
         const prods = await step.$getProductions(1)
         if (i === 0) {
             headers = await step.$getHeaders();
-            eachOuterDataLen = headers.length
+            headers.unshift('抖音号')
             // 去掉最后一列操作
             headers.splice(-1)
+            eachOuterDataLen = headers.length
             headers = headers.concat(prods.headers)
             headers.push('产品编号')
 
         }
+        let index0 = content[0].indexOf('抖音号：')
+        content.unshift(`${content[0].slice(index0 + 4)}`)
         prods.list.forEach(item => {
             let item1 = item[0]
             let index1 = item1.indexOf('编号：')
@@ -66,5 +69,9 @@ export default async () => {
     })
 
     const now = new Date();
-    writeExcel(excelData, `达人带货信息-${now.getFullYear()}-${now.getMonth()}-${now.getDay()} ${now.getHours()}:${now.getMinutes()}`)
+    const filename = `达人带货信息-${now.getFullYear()}-${now.getMonth()}-${now.getDay()} ${now.getHours()}_${now.getMinutes()}.xlsx`
+    writeExcel(excelData, filename)
+    await sleep(8000);
+    await browser.close();
+    console.log('导出完成,文件名为：' + filename)
 };
