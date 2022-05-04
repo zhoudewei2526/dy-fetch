@@ -16,23 +16,30 @@ export default async () => {
     const page = await browser.newPage();
     await page.goto('https://compass.jinritemai.com');
     // await page.goto('https://fxg.jinritemai.com/login');
-    await sleep(8000)
+    await sleep(28000)
     let step = new HezuodarenStep()
     await step.initPage();
     let i = 0;
-    let headers: string[] = [''];
+    let headers: string[] = [];
 
     const outerRes: (string[])[] = [];
     const prodRes: TableResult<string>[] = [];
 
     let eachOuterDataLen = 0
     while (i < list.length) {
-        await step.$search(list[i].trim())
+        const dycode = list[i].trim()
+        await step.$search(dycode)
+        i++;
         const content = await step.$getOuterTable()
+        if (content.length === 0) {
+            prodRes.push({ headers: [], list: [] })
+            outerRes.push([dycode, '此人没有带货记录,搜索不到。或者可能是抖音号不正确'])
+            continue
+        }
         // 去掉最后一列
         content.splice(-1)
         const prods = await step.$getProductions(1)
-        if (i === 0) {
+        if (headers.length === 0) {
             headers = await step.$getHeaders();
             headers.unshift('抖音号')
             // 去掉最后一列操作
@@ -53,7 +60,6 @@ export default async () => {
         prodRes.push(prods)
         outerRes.push(content)
         await sleep(500)
-        i++
     }
     // 写入
     let excelData: string[][] = [];

@@ -1,4 +1,4 @@
-import { Page } from "puppeteer";
+import { ElementHandle, Page } from "puppeteer";
 import { getBrowser } from "../../store/puInfo";
 import { filterTableResult, getHandleInnerText, sleep, waitGetTableHeaders, waitGetTableList } from "../../util";
 
@@ -25,6 +25,9 @@ export class HezuodarenStep {
     }
     $getOuterTable = async () => {
         let list = await waitGetTableList(this.page, '#root table')
+        if (list.length === 0) {
+            return []
+        }
         const infoTr = list[0];
         const infoTds = await infoTr.$$('td');
         let outTableItem = await getHandleInnerText(this.page, infoTds);
@@ -32,22 +35,27 @@ export class HezuodarenStep {
         return outTableItem
     }
     $getProductions = async (productionIndex: number) => {
-        let prod = await this.page.waitForSelector(`#root table tbody>tr.ecom-table-row td:nth-child(${productionIndex + 1}) a`)
-        await prod?.tap();
-        // 确认有该table
-        await this.page.waitForSelector('.ecom-drawer-content-wrapper table>tbody>tr')
-        await sleep(1000)
-        let eachLines = await this.page.$$('.ecom-drawer-content-wrapper table>tbody>tr');
-        const allP = eachLines.map(line => new Promise<string[]>((reslove) => {
-            line.$$('td').then(tds => {
-                getHandleInnerText(this.page, tds || []).then(arr => {
-                    reslove(arr)
-                })
-            })
-        }))
-        const res = await Promise.all(allP)
+        let prod!: ElementHandle<Element> | null
+        try {
+            prod = await this.page.waitForSelector(`#root table tbody>tr.ecom-table-row td:nth-child(${productionIndex + 1}) a`,{timeout:5000})
 
-        return filterTableResult({ headers: ['排名', '商品信息', '成交金额', '操作'], list: res })
+            await prod?.tap();
+            // 确认有该table
+            await this.page.waitForSelector('.ecom-drawer-content-wrapper table>tbody>tr', { timeout: 5000 })
+            await sleep(1000)
+            let eachLines = await this.page.$$('.ecom-drawer-content-wrapper table>tbody>tr');
+            const allP = eachLines.map(line => new Promise<string[]>((reslove) => {
+                line.$$('td').then(tds => {
+                    getHandleInnerText(this.page, tds || []).then(arr => {
+                        reslove(arr)
+                    })
+                })
+            }))
+            const res = await Promise.all(allP)
+            return filterTableResult({ headers: ['排名', '商品信息', '成交金额', '操作'], list: res })
+        } catch (error) {
+            return { headers: ['排名', '商品信息', '成交金额', '操作'], list: [] }
+        }
     }
     $getHeaders = async () => {
         await this.page.waitForSelector('#root table');

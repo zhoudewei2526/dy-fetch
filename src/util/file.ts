@@ -9,10 +9,10 @@ export const readFileBySource = (templatePath: string) => {
 }
 export const getCsv = (templatePath: string) => {
     const data = readFileBySource(templatePath).toString();
-    const arr = data.split(/\r\n?/)
+    const arr = data.split(/\r?\n/)
     arr.shift();
     const headers = arr || [];
-    const resArr = Array.from(new Set(headers.filter(it => !!it).map(ite => ite.trim())))
+    const resArr = Array.from(new Set(headers.filter(it => !!it&&!it.includes('"')).map(ite => ite.trim())))
     return { headers, list: resArr }
 }
 

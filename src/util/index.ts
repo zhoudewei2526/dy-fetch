@@ -18,7 +18,7 @@ export const waitGetTableList = async (page: Page, selector: string, options: { 
             if (trs && trs?.length > 0) {
                 res(trs)
             } else {
-                setTimeout(() => tryToFind, tryWaitTime)
+                setTimeout(() => tryToFind(), tryWaitTime)
             }
         }
         tryToFind()
